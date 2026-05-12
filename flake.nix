@@ -34,7 +34,7 @@
 
         src = ./.;
 
-        vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+        vendorHash = "sha256-haYm6K44hDagVNx5D0tRfc8uLjTwrbiFhiNqKiBD5Uo=";
 
         env.CGO_ENABLED = 0;
 
