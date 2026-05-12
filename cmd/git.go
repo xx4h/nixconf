@@ -9,14 +9,20 @@ import (
 	"github.com/xx4h/nixconf/internal/runner"
 )
 
-// gitCmd handles every non-built-in subcommand by forwarding to
-// `git -C <repo> <args...>` in each selected repo. It is invoked by
-// rewriteArgsForGitPassthrough — users do not type `nixconf git ...` directly,
-// although they could.
+// gitCmd forwards its arguments to `git -C <repo>` in every selected repo.
+// Flag parsing is disabled so any git flag (e.g. `--oneline`, `-p`) reaches
+// git unaltered; nixconf's own flags must appear before the `git` keyword.
 var gitCmd = &cobra.Command{
 	Use:                "git [args...]",
-	Short:              "Forward arbitrary git commands to every selected repo",
-	Hidden:             true,
+	Short:              "Run a git command in every selected repo",
+	Long: `Run an arbitrary git command in every selected repo.
+
+All arguments after 'git' are passed through to 'git -C <repo>' without
+further interpretation by nixconf. Place nixconf's own flags before the
+'git' keyword:
+
+  nixconf --hosts git status
+  nixconf -r nixos-common git log --oneline -5`,
 	DisableFlagParsing: true,
 	RunE:               runGit,
 }
