@@ -92,38 +92,38 @@ repos:
       path: users/nixos-<user>
 ```
 
-`git_base` is optional if every repo provides its own `url`.
+`git_base` is optional if every repository provides its own `url`.
 
 ## Commands
 
-| Command                              | What it does                                                       |
-|--------------------------------------|--------------------------------------------------------------------|
-| `nixconf init [path]`                | Create a starter `nixconf.yaml` (default: `$XDG_CONFIG_HOME`)      |
-| `nixconf clone`                      | Clone every repo in `nixconf.yaml` into its `path` under `data_dir`|
-| `nixconf update [INPUT ...]`         | `nix flake update` + commit `flake.lock` + push, in every repo     |
-| `nixconf verify`                     | Check host/user `flake.lock`s point at the latest `nixos-common`   |
-| `nixconf git <args>`                 | Run `git -C <repo> <args>` in every selected repo                  |
-| `nixconf config add <kind> <name>`   | Add a `host` or `user` entry (flags: `--path`, `--url`)            |
-| `nixconf config edit <kind> <name>`  | Edit an entry (flags: `--name`, `--path`, `--url`)                 |
-| `nixconf config delete <kind> <name>`| Remove an entry (aliases: `rm`, `remove`)                          |
-| `nixconf config disable <kind> <name>`| Mark an entry as disabled — skipped by other commands             |
-| `nixconf config enable <kind> <name>`| Re-enable a previously disabled entry                              |
-| `nixconf version`                    | Print version / commit / build date                                |
-| `nixconf completion <shell>`         | Print shell completion (bash/zsh/fish/powershell)                  |
+| Command                                | What it does                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------- |
+| `nixconf init [path]`                  | Create a starter `nixconf.yaml` (default: `$XDG_CONFIG_HOME`)             |
+| `nixconf clone`                        | Clone every repository in `nixconf.yaml` into its `path` under `data_dir` |
+| `nixconf update [INPUT ...]`           | `nix flake update` + commit `flake.lock` + push, in every repository      |
+| `nixconf verify`                       | Check host/user `flake.lock`s point at the latest `nixos-common`          |
+| `nixconf git <args>`                   | Run `git -C <repo> <args>` in every selected repository                   |
+| `nixconf config add <kind> <name>`     | Add a `host` or `user` entry (flags: `--path`, `--url`)                   |
+| `nixconf config edit <kind> <name>`    | Edit an entry (flags: `--name`, `--path`, `--url`)                        |
+| `nixconf config delete <kind> <name>`  | Remove an entry (aliases: `rm`, `remove`)                                 |
+| `nixconf config disable <kind> <name>` | Mark an entry as disabled — skipped by other commands                     |
+| `nixconf config enable <kind> <name>`  | Re-enable a previously disabled entry                                     |
+| `nixconf version`                      | Print version / commit / build date                                       |
+| `nixconf completion <shell>`           | Print shell completion (Bash/Zsh/Fish/PowerShell)                         |
 
-Arbitrary git commands are run only via the explicit `nixconf git`
+Arbitrary Git commands are run only via the explicit `nixconf git`
 subcommand; unknown subcommands are no longer auto-forwarded.
 
 **Selectors** (combine with any command):
 
-| Flag                  | Effect                                  |
-|-----------------------|-----------------------------------------|
-| `--common`            | only common repos                       |
-| `--hosts`             | only host config repos                  |
-| `--users`             | only user config repos                  |
-| `-r, --repo <name>`   | only the named repo                     |
-| `-n, --dry-run`       | show what would be done; no changes     |
-| `-c, --config <path>` | override the `nixconf.yaml` lookup      |
+| Flag                  | Effect                              |
+| --------------------- | ----------------------------------- |
+| `--common`            | only common repos                   |
+| `--hosts`             | only host config repos              |
+| `--users`             | only user config repos              |
+| `-r, --repo <name>`   | only the named repository           |
+| `-n, --dry-run`       | show what would be done; no changes |
+| `-c, --config <path>` | override the `nixconf.yaml` lookup  |
 
 ### Examples
 

@@ -1,2 +1,3 @@
 [codespell]
-ignore-words-list = nixos,nixpkgs,nixconf
+# "fo" is vim formatoptions in the .goreleaser.yaml modeline, not a typo.
+ignore-words-list = nixos,nixpkgs,nixconf,fo

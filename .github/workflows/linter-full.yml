@@ -18,12 +18,14 @@ jobs:
       statuses: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v5
+        # v5.0.1 (2025-11-13)
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
           persist-credentials: false
       - name: Lint Code Base
-        uses: super-linter/super-linter@v8
+        # v8.6.0 (2026-03-31)
+        uses: super-linter/super-linter@9e863354e3ff62e0727d37183162c4a88873df41
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_JSCPD: false

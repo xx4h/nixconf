@@ -79,21 +79,26 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
+const (
+	kindHost = "host"
+	kindUser = "user"
+)
+
 // kind is "host" or "user". Plural forms are accepted as aliases.
 func parseKind(s string) (string, error) {
 	switch strings.ToLower(s) {
-	case "host", "hosts":
-		return "host", nil
-	case "user", "users":
-		return "user", nil
+	case kindHost, "hosts":
+		return kindHost, nil
+	case kindUser, "users":
+		return kindUser, nil
 	default:
-		return "", fmt.Errorf("unknown kind %q (want: host, user)", s)
+		return "", fmt.Errorf("unknown kind %q (want: %s, %s)", s, kindHost, kindUser)
 	}
 }
 
 // repoSlice returns a pointer to the slice in cfg.Repos that backs kind.
 func repoSlice(cfg *config.Config, kind string) *[]config.Repo {
-	if kind == "host" {
+	if kind == kindHost {
 		return &cfg.Repos.Hosts
 	}
 	return &cfg.Repos.Users
@@ -269,7 +274,7 @@ func runConfigSetDisabled(disabled bool) func(*cobra.Command, []string) error {
 // completeKindThenNew offers "host"/"user" for the first arg; nothing for the second.
 func completeKindThenNew(_ *cobra.Command, args []string, _ string) ([]string, cobra.ShellCompDirective) {
 	if len(args) == 0 {
-		return []string{"host", "user"}, cobra.ShellCompDirectiveNoFileComp
+		return []string{kindHost, kindUser}, cobra.ShellCompDirectiveNoFileComp
 	}
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }
@@ -278,7 +283,7 @@ func completeKindThenNew(_ *cobra.Command, args []string, _ string) ([]string, c
 // existing names of that kind for the second.
 func completeKindThenExisting(_ *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	if len(args) == 0 {
-		return []string{"host", "user"}, cobra.ShellCompDirectiveNoFileComp
+		return []string{kindHost, kindUser}, cobra.ShellCompDirectiveNoFileComp
 	}
 	if len(args) == 1 {
 		kind, err := parseKind(args[0])

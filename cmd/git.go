@@ -13,8 +13,8 @@ import (
 // Flag parsing is disabled so any git flag (e.g. `--oneline`, `-p`) reaches
 // git unaltered; nixconf's own flags must appear before the `git` keyword.
 var gitCmd = &cobra.Command{
-	Use:                "git [args...]",
-	Short:              "Run a git command in every selected repo",
+	Use:   "git [args...]",
+	Short: "Run a git command in every selected repo",
 	Long: `Run an arbitrary git command in every selected repo.
 
 All arguments after 'git' are passed through to 'git -C <repo>' without
@@ -57,7 +57,9 @@ func runGit(_ *cobra.Command, args []string) error {
 		if flagDryRun {
 			gitArgs = append([]string{args[0], "--dry-run"}, args[1:]...)
 		}
-		_ = runner.Run(runner.Git(full, gitArgs...))
+		if err := runner.Run(runner.Git(full, gitArgs...)); err != nil {
+			output.Warnf("%s — git %s failed: %v", r.Name, args[0], err)
+		}
 	}
 	return nil
 }

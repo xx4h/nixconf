@@ -75,8 +75,8 @@ func runVerify(_ *cobra.Command, _ []string) error {
 		}
 
 		lockedShort := shortRev(locked)
-		switch {
-		case locked == latest:
+		switch locked {
+		case latest:
 			fmt.Printf("  %s    %s — %s\n", output.Success.Render("OK"), r.Name, lockedShort)
 		default:
 			fmt.Printf("  %s %s — %s (expected %s)\n",

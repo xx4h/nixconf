@@ -1,3 +1,4 @@
+---
 version: "3"
 
 vars:
@@ -6,6 +7,8 @@ vars:
   INSTALL_PATH: /usr/local/bin
   LOCAL_INSTALL_PATH: "{{.HOME}}/.local/bin"
   MODULE: github.com/xx4h/nixconf
+  # Pin to the same image super-linter@v8 resolved to in the workflow.
+  SUPER_LINTER_IMAGE: ghcr.io/super-linter/super-linter:v8.6.0
   GIT_COMMIT:
     sh: git rev-parse HEAD
   GIT_SHA:
@@ -34,7 +37,9 @@ tasks:
   build:
     desc: Build the nixconf binary
     cmds:
-      - CGO_ENABLED=0 go build -trimpath -ldflags '{{.LDFLAGS}}' -o '{{.BINDIR}}/{{.BINNAME}}' ./main.go
+      - >-
+        CGO_ENABLED=0 go build -trimpath -ldflags '{{.LDFLAGS}}'
+        -o '{{.BINDIR}}/{{.BINNAME}}' ./main.go
     sources:
       - "**/*.go"
       - go.mod
@@ -70,6 +75,33 @@ tasks:
     cmds:
       - golangci-lint run ./...
 
+  lint:
+    desc: Run super-linter locally via podman, matching the CI workflow
+    # The env flags mirror .github/workflows/linter-full.yml. The extra
+    # mounts hide nix-managed local artifacts that CI never sees so biome
+    # (which scans the workspace on its own and ignores FILTER_REGEX_EXCLUDE)
+    # doesn't trip on dangling symlinks:
+    #   -v /tmp/lint/.direnv         anonymous empty volume shadowing the
+    #                                direnv symlink farm (.direnv/*)
+    #   -v /dev/null:/tmp/lint/result:ro
+    #                                replaces the `nix build` result symlink
+    #                                with /dev/null (anonymous volume can't
+    #                                overlay a symlink, only a directory)
+    cmds:
+      - >
+        podman run --rm
+        -e RUN_LOCAL=true
+        -e DEFAULT_BRANCH=main
+        -e VALIDATE_ALL_CODEBASE=true
+        -e VALIDATE_JSCPD=false
+        -e VALIDATE_GO=false
+        -e VALIDATE_RUBY=false
+        -e VALIDATE_BIOME_FORMAT=false
+        -v "$(pwd):/tmp/lint:Z"
+        -v /tmp/lint/.direnv
+        -v /dev/null:/tmp/lint/result:ro
+        {{.SUPER_LINTER_IMAGE}}
+
   test-editorconfig:
     desc: Check editorconfig compliance
     cmds:
@@ -88,7 +120,9 @@ tasks:
   format:
     desc: Format Go code with goimports
     cmds:
-      - go list -f '{{"{{.Dir}}"}}' ./... | xargs goimports -w -local {{.MODULE}}
+      - >-
+        go list -f '{{"{{.Dir}}"}}' ./...
+        | xargs goimports -w -local {{.MODULE}}
 
   clean:
     desc: Remove build artifacts
@@ -105,7 +139,9 @@ tasks:
     desc: Install to ~/.local/bin
     deps: [build]
     cmds:
-      - install '{{.BINDIR}}/{{.BINNAME}}' '{{.LOCAL_INSTALL_PATH}}/{{.BINNAME}}'
+      - >-
+        install '{{.BINDIR}}/{{.BINNAME}}'
+        '{{.LOCAL_INSTALL_PATH}}/{{.BINNAME}}'
 
   info:
     desc: Print build info

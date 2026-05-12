@@ -50,7 +50,7 @@ func Load(path string) (Config, error) {
 	}
 
 	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if err = yaml.Unmarshal(data, &cfg); err != nil {
 		return Config{}, fmt.Errorf("parsing %s: %w", abs, err)
 	}
 	cfg.Root = filepath.Dir(abs)
@@ -155,8 +155,14 @@ func LoadFromCwd(override string) (Config, error) {
 		return Config{}, err
 	}
 	if path == "" {
-		cwd, _ := os.Getwd()
-		user, _ := UserConfigPath()
+		cwd, err := os.Getwd()
+		if err != nil {
+			cwd = "<unknown>"
+		}
+		user, err := UserConfigPath()
+		if err != nil {
+			user = "<unknown>"
+		}
 		return Config{}, fmt.Errorf("nixconf.yaml not found in %s or any parent directory, and %s does not exist", cwd, user)
 	}
 	return Load(path)
@@ -191,7 +197,7 @@ func (c Config) SaveTo(path string) error {
 		return fmt.Errorf("closing encoder: %w", err)
 	}
 
-	if err := os.WriteFile(abs, buf.Bytes(), 0o644); err != nil {
+	if err := os.WriteFile(abs, buf.Bytes(), 0o600); err != nil {
 		return fmt.Errorf("writing %s: %w", abs, err)
 	}
 	return nil

@@ -59,7 +59,7 @@ func runInit(_ *cobra.Command, args []string) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(path, []byte(initTemplate), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(initTemplate), 0o600); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
 

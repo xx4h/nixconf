@@ -45,7 +45,9 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&flagRepo, "repo", "r", "", "only the named repo")
 	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dry-run", "n", false, "show what would be done without making changes")
 
-	_ = rootCmd.RegisterFlagCompletionFunc("repo", completeRepoNames)
+	if err := rootCmd.RegisterFlagCompletionFunc("repo", completeRepoNames); err != nil {
+		panic(fmt.Errorf("registering repo flag completion: %w", err))
+	}
 }
 
 func loadConfig() (config.Config, error) {
