@@ -43,7 +43,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "path to nixconf.yaml (default: search upwards from cwd)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "path to nixconf.yaml (default: search upwards from cwd, then $XDG_CONFIG_HOME/nixconf.yaml)")
 	rootCmd.PersistentFlags().BoolVar(&flagCommon, "common", false, "only common repos")
 	rootCmd.PersistentFlags().BoolVar(&flagHosts, "hosts", false, "only host config repos")
 	rootCmd.PersistentFlags().BoolVar(&flagUsers, "users", false, "only user config repos")
@@ -100,6 +100,7 @@ func firstPositionalIndex(args []string) int {
 	flagsWithValue := map[string]bool{
 		"-r":       true,
 		"--repo":   true,
+		"-c":       true,
 		"--config": true,
 	}
 	skipNext := false

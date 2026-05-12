@@ -15,10 +15,15 @@ type Selector struct {
 	Hosts  bool
 	Users  bool
 	Repo   string
+	// IncludeDisabled keeps repos with disabled=true in the result.
+	// Default behavior filters them out so they aren't acted upon by
+	// clone/update/verify/git-passthrough.
+	IncludeDisabled bool
 }
 
 // Select returns the repos matching s. If no group is set and Repo is empty,
-// every repo is returned.
+// every repo is returned. Disabled repos are filtered out unless an explicit
+// --repo selector names one or s.IncludeDisabled is set.
 func Select(cfg config.Config, s Selector) ([]config.Repo, error) {
 	all := !s.Common && !s.Hosts && !s.Users
 
@@ -33,16 +38,25 @@ func Select(cfg config.Config, s Selector) ([]config.Repo, error) {
 		repos = append(repos, cfg.Repos.Users...)
 	}
 
-	if s.Repo == "" {
-		return repos, nil
+	if s.Repo != "" {
+		for _, r := range repos {
+			if r.Name == s.Repo {
+				return []config.Repo{r}, nil
+			}
+		}
+		return nil, fmt.Errorf("repo %q not found in nixconf.yaml", s.Repo)
 	}
 
+	if s.IncludeDisabled {
+		return repos, nil
+	}
+	kept := repos[:0]
 	for _, r := range repos {
-		if r.Name == s.Repo {
-			return []config.Repo{r}, nil
+		if !r.Disabled {
+			kept = append(kept, r)
 		}
 	}
-	return nil, fmt.Errorf("repo %q not found in nixconf.yaml", s.Repo)
+	return kept, nil
 }
 
 // IsCloned reports whether the repo's working tree contains a .git directory.
