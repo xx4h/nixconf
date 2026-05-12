@@ -1,0 +1,33 @@
+---
+name: Lint Pull Request
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: main
+
+permissions: {}
+
+jobs:
+  build:
+    name: Lint Pull Request
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint Code Base
+        uses: super-linter/super-linter@v8
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JSCPD: false
+          VALIDATE_GO: false
+          VALIDATE_RUBY: false
+          VALIDATE_BIOME_FORMAT: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
