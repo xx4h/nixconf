@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -26,15 +27,83 @@ var rootCmd = &cobra.Command{
 	Long: `nixconf manages a workspace of related NixOS configuration repos
 (nixos-common, host repos, user repos) declared in nixconf.yaml.
 
-Use 'nixconf git -- <args>' to run a git command in every selected repo.`,
+Use 'nixconf [--hosts|--users|--common|-r NAME] git <args>' to run a git
+command in every selected repo.`,
 }
 
-// Execute runs the root command.
+// Execute runs the root command. If the user invoked the `git` subcommand,
+// the persistent-flag prefix is parsed in-place so the selector flags work
+// even though gitCmd has DisableFlagParsing (which otherwise disables flag
+// parsing for the whole command path, including root's persistent flags).
 func Execute() {
+	rewriteArgsForGitPassthrough()
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+// rewriteArgsForGitPassthrough detects an invocation of the form
+//
+//	nixconf [persistent-flags] git [git-args...]
+//
+// and splits the arg list so cobra sees the persistent flags as belonging
+// to the root command. Without this, DisableFlagParsing on gitCmd causes
+// `nixconf --hosts git status` to forward `--hosts` to git verbatim.
+func rewriteArgsForGitPassthrough() {
+	args := os.Args[1:]
+
+	idx := firstPositionalIndex(args)
+	if idx < 0 || args[idx] != "git" {
+		return
+	}
+
+	persistent := args[:idx]
+	gitArgs := args[idx+1:]
+
+	if err := rootCmd.PersistentFlags().Parse(persistent); err != nil {
+		// Let cobra surface the error in its usual format.
+		return
+	}
+
+	rootCmd.SetArgs(append([]string{"git"}, gitArgs...))
+}
+
+// firstPositionalIndex returns the index of the first non-flag argument,
+// accounting for persistent flags that take a value when separated by a
+// space (e.g. `--repo foo` or `-c path`).
+func firstPositionalIndex(args []string) int {
+	flagsWithValue := map[string]bool{
+		"-r":       true,
+		"--repo":   true,
+		"-c":       true,
+		"--config": true,
+	}
+	skipNext := false
+	for i, a := range args {
+		if skipNext {
+			skipNext = false
+			continue
+		}
+		if a == "--" {
+			if i+1 < len(args) {
+				return i + 1
+			}
+			return -1
+		}
+		if strings.HasPrefix(a, "-") {
+			if strings.Contains(a, "=") {
+				continue
+			}
+			if flagsWithValue[a] {
+				skipNext = true
+			}
+			continue
+		}
+		return i
+	}
+	return -1
 }
 
 func init() {
