@@ -35,6 +35,12 @@ func runGit(_ *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("no git command specified")
 	}
+	return runGitArgs(args)
+}
+
+// runGitArgs runs `git args...` in every selected repo. args[0] must be the
+// git subcommand; the dry-run flag is inserted right after it.
+func runGitArgs(args []string) error {
 	cfg, err := loadConfig()
 	if err != nil {
 		return err
