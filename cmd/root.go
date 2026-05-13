@@ -46,28 +46,42 @@ func Execute() {
 
 // rewriteArgsForGitPassthrough detects an invocation of the form
 //
-//	nixconf [persistent-flags] git [git-args...]
+//	nixconf [persistent-flags] git    [git-args...]
+//	nixconf [persistent-flags] <sub>  [git-args...]   // sub in gitShortcuts
 //
 // and splits the arg list so cobra sees the persistent flags as belonging
-// to the root command. Without this, DisableFlagParsing on gitCmd causes
-// `nixconf --hosts git status` to forward `--hosts` to git verbatim.
+// to the root command. Without this, DisableFlagParsing on the passthrough
+// commands causes `nixconf --hosts git status` (or `nixconf --hosts push`)
+// to forward `--hosts` to git verbatim.
 func rewriteArgsForGitPassthrough() {
 	args := os.Args[1:]
 
 	idx := firstPositionalIndex(args)
-	if idx < 0 || args[idx] != "git" {
+	if idx < 0 || !isGitPassthroughKeyword(args[idx]) {
 		return
 	}
 
 	persistent := args[:idx]
-	gitArgs := args[idx+1:]
+	remaining := args[idx:]
 
 	if err := rootCmd.PersistentFlags().Parse(persistent); err != nil {
 		// Let cobra surface the error in its usual format.
 		return
 	}
 
-	rootCmd.SetArgs(append([]string{"git"}, gitArgs...))
+	rootCmd.SetArgs(remaining)
+}
+
+func isGitPassthroughKeyword(s string) bool {
+	if s == "git" {
+		return true
+	}
+	for _, sub := range gitShortcuts {
+		if s == sub {
+			return true
+		}
+	}
+	return false
 }
 
 // firstPositionalIndex returns the index of the first non-flag argument,
