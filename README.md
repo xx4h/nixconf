@@ -32,6 +32,35 @@ nix run github:xx4h/nixconf
 inputs.nixconf.url = "github:xx4h/nixconf";
 ```
 
+The package installs Bash/Zsh/Fish completion files into the standard
+`share/` paths, so shells that auto-load vendor completions pick them up
+without further configuration.
+
+### Home Manager
+
+A Home Manager module is exposed at `homeManagerModules.default`:
+
+```nix
+{
+  inputs.nixconf.url = "github:xx4h/nixconf";
+}
+```
+
+```nix
+# in your Home Manager config
+{ inputs, ... }: {
+  imports = [ inputs.nixconf.homeManagerModules.default ];
+
+  programs.nixconf = {
+    enable = true;
+    # All three default to true; toggle off to skip the shell init hook.
+    # enableBashIntegration = true;
+    # enableZshIntegration  = true;
+    # enableFishIntegration = true;
+  };
+}
+```
+
 ### Homebrew
 
 ```bash

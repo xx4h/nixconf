@@ -38,6 +38,8 @@
 
         env.CGO_ENABLED = 0;
 
+        nativeBuildInputs = [ pkgs.installShellFiles ];
+
         ldflags = [
           "-s"
           "-w"
@@ -45,6 +47,14 @@
           "-X github.com/xx4h/nixconf/cmd.commit=${commit}"
           "-X github.com/xx4h/nixconf/cmd.date=${date}"
         ];
+
+        postInstall = pkgs.lib.optionalString
+          (pkgs.stdenv.buildPlatform.canExecute pkgs.stdenv.hostPlatform) ''
+          installShellCompletion --cmd nixconf \
+            --bash <($out/bin/nixconf completion bash) \
+            --zsh  <($out/bin/nixconf completion zsh) \
+            --fish <($out/bin/nixconf completion fish)
+        '';
 
         meta = with pkgs.lib; {
           description = "Repository manager for NixOS multi-repo configuration";
@@ -59,6 +69,9 @@
       overlays.default = final: prev: {
         nixconf = mkNixconf final;
       };
+
+      homeManagerModules.default = import ./nix/hm-module.nix self;
+      homeManagerModules.nixconf = self.homeManagerModules.default;
     }
     //
     flake-utils.lib.eachDefaultSystem (system:
