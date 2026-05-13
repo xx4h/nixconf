@@ -12,9 +12,11 @@ import (
 )
 
 var cloneCmd = &cobra.Command{
-	Use:   "clone",
-	Short: "Clone all configured repos into their directories",
-	RunE:  runClone,
+	Use:               "clone",
+	Short:             "Clone all configured repos into their directories",
+	Args:              cobra.NoArgs,
+	ValidArgsFunction: completeFlagsOnly,
+	RunE:              runClone,
 }
 
 func init() {
