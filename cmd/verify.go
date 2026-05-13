@@ -15,9 +15,11 @@ import (
 )
 
 var verifyCmd = &cobra.Command{
-	Use:   "verify",
-	Short: "Check that host/user repos follow the latest nixos-common",
-	RunE:  runVerify,
+	Use:               "verify",
+	Short:             "Check that host/user repos follow the latest nixos-common",
+	Args:              cobra.NoArgs,
+	ValidArgsFunction: completeFlagsOnly,
+	RunE:              runVerify,
 }
 
 func init() {

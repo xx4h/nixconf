@@ -13,8 +13,10 @@ var (
 )
 
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print version information",
+	Use:               "version",
+	Short:             "Print version information",
+	Args:              cobra.NoArgs,
+	ValidArgsFunction: completeFlagsOnly,
 	Run: func(cmd *cobra.Command, _ []string) {
 		const format = "%-10s %s\n"
 		fmt.Fprintf(cmd.OutOrStdout(), format, "Version:", version)

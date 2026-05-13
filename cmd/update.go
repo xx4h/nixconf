@@ -17,7 +17,8 @@ flake.lock change, and push.
 
 If one or more INPUT names are given they are passed through to
 'nix flake update INPUT ...' so only those inputs are bumped.`,
-	RunE: runUpdate,
+	ValidArgsFunction: completeUpdateInputs,
+	RunE:              runUpdate,
 }
 
 func init() {
