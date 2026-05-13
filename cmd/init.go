@@ -38,6 +38,15 @@ git_base: ""
 # resolved against the directory holding this file.
 # data_dir: ""
 
+# update controls how ` + "`nixconf update`" + ` commits the bumped flake.lock.
+# commit_message: ` + "`{{inputs}}`" + ` is replaced with " <input1> <input2>" when
+# INPUTs are passed on the command line, and with "" otherwise.
+# commit_flags: extra args appended to ` + "`git commit`" + `. An explicit empty list
+# disables -v/-s/-S (the built-in defaults).
+# update:
+#   commit_message: "chore(deps): flake update{{inputs}}"
+#   commit_flags: ["-v", "-s", "-S"]
+
 repos:
   common: []
   hosts: []
