@@ -99,6 +99,16 @@ git_base: "git@github.com:<user>"
 # are resolved against the directory holding this file.
 # data_dir: ""
 
+# Optional. Controls how `nixconf update` commits the bumped flake.lock.
+# Defaults shown.
+update:
+  # `{{inputs}}` is replaced with " <input1> <input2>" when INPUTs are
+  # passed on the command line, and with "" otherwise.
+  commit_message: "chore(deps): flake update{{inputs}}"
+  # Extra args appended to `git commit`. An explicit empty list disables
+  # signing (`commit_flags: []`).
+  commit_flags: ["-v", "-s", "-S"]
+
 repos:
   common:
     - name: nixos-common

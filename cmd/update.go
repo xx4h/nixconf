@@ -42,13 +42,16 @@ func runUpdate(_ *cobra.Command, inputs []string) error {
 			continue
 		}
 
+		commitMsg := cfg.UpdateCommitMessage(inputs)
+		commitFlags := cfg.UpdateCommitFlags()
+
 		if flagDryRun {
+			suffix := ""
 			if len(inputs) > 0 {
-				output.Infof("%s (%s) — would run: nix flake update %s, commit flake.lock, push",
-					r.Name, r.Path, strings.Join(inputs, " "))
-			} else {
-				output.Infof("%s (%s) — would run: nix flake update, commit flake.lock, push", r.Name, r.Path)
+				suffix = " " + strings.Join(inputs, " ")
 			}
+			output.Infof("%s (%s) — would run: nix flake update%s, git commit %s -m %q flake.lock, push",
+				r.Name, r.Path, suffix, strings.Join(commitFlags, " "), commitMsg)
 			continue
 		}
 
@@ -66,11 +69,9 @@ func runUpdate(_ *cobra.Command, inputs []string) error {
 			continue
 		}
 
-		commitMsg := "chore(deps): flake update"
-		if len(inputs) > 0 {
-			commitMsg = "chore(deps): flake update " + strings.Join(inputs, " ")
-		}
-		if err := runner.Run(runner.Git(full, "commit", "-v", "flake.lock", "-m", commitMsg, "-s", "-S")); err != nil {
+		commitArgs := append([]string{"commit"}, commitFlags...)
+		commitArgs = append(commitArgs, "-m", commitMsg, "--", "flake.lock")
+		if err := runner.Run(runner.Git(full, commitArgs...)); err != nil {
 			output.Warnf("%s — commit failed: %v", r.Name, err)
 			continue
 		}

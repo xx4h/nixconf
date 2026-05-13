@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -22,18 +23,65 @@ type Repos struct {
 	Users  []Repo `yaml:"users,omitempty"`
 }
 
+// UpdateConfig tunes how `nixconf update` commits the bumped flake.lock.
+// All fields are optional; see the resolver methods on Config for defaults.
+type UpdateConfig struct {
+	// CommitMessage is the message passed to `git commit -m`. The literal
+	// "{{inputs}}" is substituted with " <input1> <input2>" when one or
+	// more INPUTs were given on the command line, and with "" otherwise.
+	CommitMessage string `yaml:"commit_message,omitempty"`
+	// CommitFlags are extra flags appended to `git commit` (e.g. "-s",
+	// "-S"). A nil slice means "use default"; an explicit empty list
+	// means "no extra flags".
+	CommitFlags *[]string `yaml:"commit_flags,omitempty"`
+}
+
 type Config struct {
 	GitBase string `yaml:"git_base,omitempty"`
 	// DataDir is the directory under which repos are cloned. If empty, the
 	// resolved value falls back to $XDG_DATA_HOME/nixconf (or
 	// ~/.local/share/nixconf). Relative values are interpreted against the
 	// directory holding nixconf.yaml.
-	DataDir string `yaml:"data_dir,omitempty"`
-	Repos   Repos  `yaml:"repos"`
+	DataDir string       `yaml:"data_dir,omitempty"`
+	Update  UpdateConfig `yaml:"update,omitempty"`
+	Repos   Repos        `yaml:"repos"`
 
 	Root            string `yaml:"-"`
 	Path            string `yaml:"-"`
 	ResolvedDataDir string `yaml:"-"`
+}
+
+// DefaultUpdateCommitMessage is the fallback template for `nixconf update`
+// commit messages. See UpdateConfig.CommitMessage for the placeholder.
+const DefaultUpdateCommitMessage = "chore(deps): flake update{{inputs}}"
+
+// DefaultUpdateCommitFlags is the fallback flag set passed to `git commit`
+// during `nixconf update`. -v shows the diff in the editor (no-op with -m),
+// -s adds Signed-off-by, -S signs with GPG.
+func DefaultUpdateCommitFlags() []string { return []string{"-v", "-s", "-S"} }
+
+// UpdateCommitMessage returns the configured commit-message template with
+// `{{inputs}}` substituted for the joined inputs, falling back to the
+// built-in default when no template is configured.
+func (c Config) UpdateCommitMessage(inputs []string) string {
+	tpl := c.Update.CommitMessage
+	if tpl == "" {
+		tpl = DefaultUpdateCommitMessage
+	}
+	var sub string
+	if len(inputs) > 0 {
+		sub = " " + strings.Join(inputs, " ")
+	}
+	return strings.ReplaceAll(tpl, "{{inputs}}", sub)
+}
+
+// UpdateCommitFlags returns the configured extra flags for `git commit`,
+// falling back to the built-in defaults when unset.
+func (c Config) UpdateCommitFlags() []string {
+	if c.Update.CommitFlags == nil {
+		return DefaultUpdateCommitFlags()
+	}
+	return *c.Update.CommitFlags
 }
 
 // Load reads nixconf.yaml from path. The directory containing the file is
